@@ -2,16 +2,28 @@
 	#include <math.h>
 	#include <stdio.h>
 	#include <stdlib.h>
+	#include "symbol.cpp"
+	int g_addr = 100;
 
+	extern "C" {
+		int yylex();
+		void yyerror(char *);
+	}
+
+	
 %}
-%token ID NUM SIZEOF REAL
+%token<str> ID 
+%token NUM SIZEOF REAL
 %token PTR DOT
-%token TYPEDEF INT FLOAT VOID STRUCT
+%token TYPEDEF STRUCT
+%token<iValue> INT FLOAT VOID
 %token IF ELSE WHILE RETURN FOR DO SWITCH CASE BREAK DEFAULT CONTINUE
 %token PRINTF SCANF
 %token STRING
 %token PREPROC
 %token MUL_ASSIGN SUB_ASSIGN DIV_ASSIGN ADD_ASSIGN
+%token ARRAY FUNCTION
+%token MAIN
 
 %left GT LT LE GE NE EQ
 %left AND OR
@@ -20,19 +32,29 @@
 %left '+' '-'
 %left '*' '/'
 
+%type<iValue> Type
+%type<str> Assignment ArrayUsage 
+%union {
+ 		int iValue; /* integer value */
+ 		char *str; /* symbol table index */
+	}
+
+
 %%
-start:	Function 
-	| Declaration
+start:	Function start
+	| Declaration start
 	| PREPROC start
+	| 
 	;
 
 /* Declaration block */
-Declaration: Type Assignment ';' 
+Declaration: Type Assignment ';' { insert($2,$1,g_addr); g_addr+=4; }
 	| Assignment ';'  	
 	| FunctionCall ';' 	
-	| ArrayUsage ';'	
-	| Type ArrayUsage ';'   
-	| StructStmt ';'	
+	| ArrayUsage ';' 
+	| Type ArrayUsage ';' { insert($2,ARRAY,g_addr);
+							insert($2,$1,g_addr); g_addr+=4; } 
+	| StructStmt ';'
 	| error	
 	;
 
@@ -75,16 +97,18 @@ assign_operator: '='
 
 /* Function Call Block */
 FunctionCall : ID'('')'
-	| ID'('Assignment')'
+	| ID'('Assignment')' 
 	;
 
 /* Array Usage */
-ArrayUsage : ID'['Assignment']'
+ArrayUsage : ID'['Assignment']' 
 	;
 
+
 /* Function block */
-Function: Type ID '(' ArgListOpt ')' CompoundStmt 
+Function: Type ID '(' ArgListOpt ')' CompoundStmt { insert($2,FUNCTION,g_addr); insert($2,$1,g_addr);g_addr+=4; }
 	;
+
 ArgListOpt: ArgList
 	|
 	;
@@ -135,7 +159,7 @@ IfStmt : IF '(' Expr ')' Stmt
 	;
 
 /* Struct Statement */
-StructStmt : STRUCT ID '{' Type Assignment '}'  
+StructStmt : STRUCT ID '{' Type Assignment ';' '}' { insert($2,STRUCT,g_addr); g_addr+=4; } 
 	;
 
 /* Print Function */
@@ -173,7 +197,10 @@ int main(int argc,char *argv[])
 		yyin = file;
 
 	if(!yyparse())
+		{
 		printf("\nParsing done\n");
+		printsym();
+		}
 	else
 		printf("\nParsing failed\n");
 

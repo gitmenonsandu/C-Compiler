@@ -5,8 +5,8 @@ digit [0-9]
 [ \t]		;
 [ \n]   { yylineno = yylineno + 1;}
 
-int	return INT;
-float return FLOAT;
+int	{ yylval.iValue = INT; return INT; }
+float { yylval.iValue = FLOAT; return FLOAT;}
 void return VOID;
 sizeof return SIZEOF;
 typedef return TYPEDEF;
@@ -27,7 +27,7 @@ struct 	return STRUCT;
 ^"#include ".+ return PREPROC;
 {digit}+       return NUM;
 ({digit}*\.{digit}+)|({digit}+\.{digit}*) return REAL;
-{alpha}({alpha}|{digit})* return ID;
+{alpha}({alpha}|{digit})* { yylval.str = strdup(yytext); return ID ;}
 "<="    return LE;
 ">="    return GE;
 "=="    return EQ;
@@ -44,6 +44,6 @@ struct 	return STRUCT;
 \/\/.* ;
 \/\*(.*\n)*.*\*\/ ;
 \"(\\.|[^"])*\" return STRING;
-.*   printf("Lexical Error\n");
+. return yytext[0];
 
 %%
