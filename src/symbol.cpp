@@ -44,6 +44,20 @@ void insert(char *n, int type, int addr)
 	return;
 }
 
+void delete(char *n)
+{
+	string name(n);
+	map<string,symbolTable>::iterator it;
+	if(st.find(n)!=st.end())
+	{	
+		it=st.find(n);
+		st.erase(it);
+	}
+}
+void clearsym()
+{
+	st.clear();
+}
 void printsym()
 {
 	//cout<<"hello"<<endl;
