@@ -7,7 +7,7 @@ digit [0-9]
 
 int	{ yylval.iValue = INT; return INT; }
 float { yylval.iValue = FLOAT; return FLOAT;}
-void return VOID;
+void {yylval.iValue=VOID; return VOID;}
 sizeof return SIZEOF;
 typedef return TYPEDEF;
 for 	return FOR;
@@ -25,8 +25,8 @@ printf  return PRINTF;
 scanf return SCANF;
 struct 	return STRUCT;
 ^"#include ".+ return PREPROC;
-{digit}+       return NUM;
-({digit}*\.{digit}+)|({digit}+\.{digit}*) return REAL;
+{digit}+       {yylval.realValue=atoi(yytext); return NUM;}
+({digit}*\.{digit}+)|({digit}+\.{digit}*) {yylval.realValue=atoi(yytext); return REAL;}
 {alpha}({alpha}|{digit})* { yylval.str = strdup(yytext); return ID ;}
 "<="    return LE;
 ">="    return GE;
@@ -43,7 +43,7 @@ struct 	return STRUCT;
 "||" return OR;
 \/\/.* ;
 \/\*(.*\n)*.*\*\/ ;
-\"(\\.|[^"])*\" return STRING;
+\"(\\.|[^"])*\" {yylval.str=strdup(yytext); return STRING;}
 . return yytext[0];
 
 %%

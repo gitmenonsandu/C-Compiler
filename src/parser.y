@@ -36,7 +36,8 @@
 %type<str> Assignment ArrayUsage 
 %union {
  		int iValue; /* integer value */
- 		char *str; /* symbol table index */
+ 		float realValue;
+ 		char *str; /* identifier name */
 	}
 
 
@@ -170,6 +171,7 @@ StructStmt : STRUCT ID '{' Type Assignment ';' '}' { insert($2,STRUCT,g_addr); g
 PrintFunc : PRINTF '(' Expr ')' ';'
 	;
 
+
 /*Expression Block*/
 Expr:	
 	| Expr LE Expr 
@@ -209,7 +211,7 @@ int main(int argc,char *argv[])
 		printf("\nParsing failed\n");
 
 	fclose(yyin);
-
+	clearsym();
 	return 0;
 }
 
