@@ -65,7 +65,11 @@ Assignment: ID assign_operator Assignment
 	| ArrayUsage assign_operator Assignment
 	| ID ',' Assignment
 	| NUM ',' Assignment
-	| ID '+' Assignment
+	| ID '+' Assignment { if(check($1,$3))
+							printf("Type Mismatch %s %s \n",$1,$3);
+							else
+							$$ = $1;
+							}
 	| ID '-' Assignment
 	| ID '*' Assignment
 	| ID '/' Assignment	
@@ -85,7 +89,7 @@ Assignment: ID assign_operator Assignment
 	| '-' ID
 	|   NUM
 	|   REAL
-	|   ID
+	|   ID { $$ = $1; }
 	;
 
 assign_operator: '='

@@ -526,13 +526,13 @@ static const yytype_uint8 yyrline[] =
 {
        0,    44,    44,    45,    46,    47,    51,    52,    53,    54,
       55,    57,    58,    62,    63,    64,    65,    66,    67,    68,
-      69,    70,    71,    72,    73,    74,    75,    76,    77,    78,
-      79,    80,    81,    82,    83,    84,    85,    86,    87,    88,
-      91,    92,    93,    94,    95,    99,   100,   104,   109,   112,
-     113,   115,   116,   118,   120,   122,   123,   125,   126,   127,
-     128,   129,   130,   131,   132,   133,   134,   138,   139,   140,
-     144,   145,   149,   150,   151,   152,   156,   157,   158,   162,
-     166,   170,   171,   172,   173,   174,   175,   176,   177,   178
+      73,    74,    75,    76,    77,    78,    79,    80,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      95,    96,    97,    98,    99,   103,   104,   108,   113,   116,
+     117,   119,   120,   122,   124,   126,   127,   129,   130,   131,
+     132,   133,   134,   135,   136,   137,   138,   142,   143,   144,
+     148,   149,   153,   154,   155,   156,   160,   161,   162,   166,
+     170,   174,   175,   176,   177,   178,   179,   180,   181,   182
 };
 #endif
 
@@ -1474,20 +1474,36 @@ yyreduce:
 #line 1475 "y.tab.c" /* yacc.c:1646  */
     break;
 
+  case 19:
+#line 68 "parser.y" /* yacc.c:1646  */
+    { if(check((yyvsp[-2].str),(yyvsp[0].str)))
+							printf("Type Mismatch %s %s \n",(yyvsp[-2].str),(yyvsp[0].str));
+							else
+							(yyval.str) = (yyvsp[-2].str);
+							}
+#line 1485 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 39:
+#line 92 "parser.y" /* yacc.c:1646  */
+    { (yyval.str) = (yyvsp[0].str); }
+#line 1491 "y.tab.c" /* yacc.c:1646  */
+    break;
+
   case 48:
-#line 109 "parser.y" /* yacc.c:1646  */
+#line 113 "parser.y" /* yacc.c:1646  */
     { insert((yyvsp[-4].str),FUNCTION,g_addr); insert((yyvsp[-4].str),(yyvsp[-5].iValue),g_addr);g_addr+=4; }
-#line 1481 "y.tab.c" /* yacc.c:1646  */
+#line 1497 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 162 "parser.y" /* yacc.c:1646  */
+#line 166 "parser.y" /* yacc.c:1646  */
     { insert((yyvsp[-5].str),STRUCT,g_addr); g_addr+=4; }
-#line 1487 "y.tab.c" /* yacc.c:1646  */
+#line 1503 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1491 "y.tab.c" /* yacc.c:1646  */
+#line 1507 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1715,7 +1731,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 182 "parser.y" /* yacc.c:1906  */
+#line 186 "parser.y" /* yacc.c:1906  */
 
 
 #include "lex.yy.c"
