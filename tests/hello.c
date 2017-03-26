@@ -23,7 +23,6 @@ int main()
 	int d,e;
 	int c[20];
 	n *= 2;
-
 	b = a + n ;
 
 	return 0 ;

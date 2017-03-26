@@ -865,7 +865,7 @@ YY_RULE_SETUP
 case 5:
 YY_RULE_SETUP
 #line 10 "scanner.l"
-return VOID;
+{yylval.iValue=VOID; return VOID;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
@@ -955,12 +955,12 @@ return PREPROC;
 case 23:
 YY_RULE_SETUP
 #line 28 "scanner.l"
-return NUM;
+{ yylval.str = strdup(yytext); return NUM;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 29 "scanner.l"
-return REAL;
+{yylval.str = strdup(yytext); return REAL;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
@@ -970,32 +970,32 @@ YY_RULE_SETUP
 case 26:
 YY_RULE_SETUP
 #line 31 "scanner.l"
-return LE;
+{yylval.str=strdup(yytext); return LE; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 32 "scanner.l"
-return GE;
+{yylval.str=strdup(yytext); return GE; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 33 "scanner.l"
-return EQ;
+{yylval.str=strdup(yytext); return EQ; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
 #line 34 "scanner.l"
-return NE;
+{yylval.str=strdup(yytext); return NE; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 35 "scanner.l"
-return GT;
+{yylval.str=strdup(yytext); return GT; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 36 "scanner.l"
-return LT;
+{yylval.str=strdup(yytext); return LT; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
@@ -1005,22 +1005,22 @@ return DOT;
 case 33:
 YY_RULE_SETUP
 #line 38 "scanner.l"
-return MUL_ASSIGN;
+{yylval.str=strdup(yytext); return MUL_ASSIGN;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 39 "scanner.l"
-return ADD_ASSIGN;
+{yylval.str=strdup(yytext); return ADD_ASSIGN;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 40 "scanner.l"
-return SUB_ASSIGN;
+{yylval.str=strdup(yytext); return SUB_ASSIGN;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 41 "scanner.l"
-return DIV_ASSIGN;
+{yylval.str=strdup(yytext); return DIV_ASSIGN;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
@@ -1047,7 +1047,7 @@ case 41:
 /* rule 41 can match eol */
 YY_RULE_SETUP
 #line 46 "scanner.l"
-return STRING;
+{yylval.str=strdup(yytext); return STRING;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP

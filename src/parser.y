@@ -3,17 +3,18 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include "symbol.cpp"
+	#include "icg.c"
+	#include "semantic.cpp"
 	int g_addr = 100;
 
 	extern "C" {
 		int yylex();
 		void yyerror(char *);
 	}
-
 	
 %}
-%token<str> ID 
-%token NUM SIZEOF REAL
+%token<str> ID NUM REAL
+%token SIZEOF
 %token PTR DOT
 %token TYPEDEF STRUCT
 %token<iValue> INT FLOAT VOID
@@ -21,22 +22,25 @@
 %token PRINTF SCANF
 %token STRING
 %token PREPROC
-%token MUL_ASSIGN SUB_ASSIGN DIV_ASSIGN ADD_ASSIGN
+%token<str> ASSIGN MUL_ASSIGN SUB_ASSIGN DIV_ASSIGN ADD_ASSIGN
 %token ARRAY FUNCTION
 %token MAIN
+
+%token<str> GT LT LE GE NE EQ
 
 %left GT LT LE GE NE EQ
 %left AND OR
 
-%right '='
+//%right '='
 %left '+' '-'
 %left '*' '/'
 
 %type<iValue> Type
-%type<str> Assignment ArrayUsage 
-%union {
+%type<str> Assignment ArrayUsage assign_operator Expression Expr RelOP FunctionCall
+
+%union 
+	{
  		int iValue; /* integer value */
- 		float realValue;
  		char *str; /* identifier name */
 	}
 
@@ -49,8 +53,11 @@ start:	Function start
 	;
 
 /* Declaration block */
-Declaration: Type Assignment ';' { insert($2,$1,g_addr); g_addr+=4; }
-	| Assignment ';'  	
+Declaration: Type Assignment ';'
+	{ 
+		insert($2,$1,g_addr); g_addr+=4;
+	}  	
+	| Assignment ';'
 	| FunctionCall ';' 	
 	| ArrayUsage ';' 
 	| Type ArrayUsage ';' { insert($2,ARRAY,g_addr);
@@ -60,44 +67,94 @@ Declaration: Type Assignment ';' { insert($2,$1,g_addr); g_addr+=4; }
 	;
 
 /* Assignment block */
-Assignment: ID assign_operator Assignment
-	| ID assign_operator FunctionCall
-	| ID assign_operator ArrayUsage
-	| ArrayUsage assign_operator Assignment
+Assignment: ID { pushicg($1);} assign_operator { pushicg($3); } Expression {codegen_assign();}
+	| ArrayUsage assign_operator Expression
 	| ID ',' Assignment
-	| NUM ',' Assignment
-	| ID '+' Assignment { if(check($1,$3))
-							printf("Type Mismatch %s %s \n",$1,$3);
-							else
-							$$ = $1;
-							}
-	| ID '-' Assignment
-	| ID '*' Assignment
-	| ID '/' Assignment	
-	| NUM '+' Assignment
-	| NUM '-' Assignment
-	| NUM '*' Assignment
-	| NUM '/' Assignment
-	| REAL '+' Assignment
-	| REAL '-' Assignment
-	| REAL '*' Assignment
-	| REAL '/' Assignment
-	| '\'' Assignment '\''	
-	| '(' Assignment ')'
-	| '-' '(' Assignment ')'
-	| '-' NUM
-	| '-' REAL
-	| '-' ID
-	|   NUM
-	|   REAL
-	|   ID { $$ = $1; }
+	| NUM ',' Assignment { $$ = $3; }
+	| ID
+	| NUM
 	;
 
-assign_operator: '='
+assign_operator: '=' { char assign[2] = "="; $$ = assign; }
 	| MUL_ASSIGN
 	| SUB_ASSIGN
 	| DIV_ASSIGN
 	| ADD_ASSIGN
+	;
+
+/*Expression Block*/
+
+Expr: Expression RelOP { { strcpy(tstack[++top], $2); }} Expression 
+	{
+		if(check($1,$4))
+				printf("Type Mismatch %s %s \n",$1,$4);
+		else
+			$$ = $1;
+		codegen();
+	}
+	;
+
+RelOP: LE 
+	| GE
+	| NE
+	| EQ
+	| GT
+	| LT
+	;
+
+Expression: Expression '+' { strcpy(tstack[++top], "+"); } Expression
+	{ 
+		if(check($1,$4))
+			printf("Type Mismatch %s %s \n",$1,$4);
+		else
+			$$ = $1;
+		codegen();
+	}
+	|	Expression '-' { strcpy(tstack[++top], ""); } Expression
+	{ 
+		if(check($1,$4))
+			printf("Type Mismatch %s %s \n",$1,$4);
+		else
+			$$ = $1;
+		codegen();
+	}
+	|	Expression '*' { strcpy(tstack[++top], "*"); } Expression
+	{ 
+		if(check($1,$4))
+			printf("Type Mismatch %s %s \n",$1,$4);
+		else
+			$$ = $1;
+		codegen();
+	}
+	|	Expression '/' { strcpy(tstack[++top], "/"); } Expression
+	{ 
+		if(check($1,$4))
+			printf("Type Mismatch %s %s \n",$1,$4);
+		else
+			$$ = $1;
+		codegen();
+	}
+	| '(' Expression ')' 
+		{ 
+			$$ = $2; 
+		}
+	|   NUM 
+		{ 
+			$$ = $1;
+			pushicg($1); 
+		}
+	|   REAL 
+		{
+			$$ = $1; 
+			pushicg($1); 
+		}
+	|   ID 
+		{ 
+			$$ = $1; 
+			pushicg($1); 
+		}
+	| 	ArrayUsage { codegen_array(); } 
+	| 	FunctionCall
 	;
 
 /* Function Call Block */
@@ -106,28 +163,36 @@ FunctionCall : ID'('')'
 	;
 
 /* Array Usage */
-ArrayUsage : ID'['Assignment']' 
+ArrayUsage : ID { pushicg($1); }'[' Expression ']'
 	;
 
 
 /* Function block */
-Function: Type ID '(' ArgListOpt ')' CompoundStmt { insert($2,FUNCTION,g_addr); insert($2,$1,g_addr);g_addr+=4; }
+Function: Type ID '(' ArgListOpt ')' CompoundStmt 
+	{ 
+		insert($2,FUNCTION,g_addr); insert($2,$1,g_addr);g_addr+=4; 
+	}
 	;
 
 ArgListOpt: ArgList
 	|
 	;
+
 ArgList:  ArgList ',' Arg
 	| Arg
 	;
+
 Arg:	Type ID
 	;
-CompoundStmt:	'{' StmtList '}'
+
+CompoundStmt:	'{'  StmtList '}'
 	;
+
 StmtList:	StmtList Stmt
 	|
 	;
 Stmt:	WhileStmt
+	| DoWhileStmt
 	| Declaration
 	| ForStmt
 	| IfStmt
@@ -146,21 +211,31 @@ Type:	INT
 	;
 
 /* Loop Blocks */ 
-WhileStmt: WHILE '(' Expr ')' Stmt  
-	| WHILE '(' Expr ')' CompoundStmt 
+WhileStmt: WHILE { while1(); } '(' Expr ')' {while2();} WhileCon
+	;
+
+WhileCon: Stmt {while3();}
+	| CompoundStmt {while3();}
+	; 
+
+DoWhileStmt: DO {dowhile1();} Stmt WHILE '(' Expr ')' ';' {dowhile2();}
+	| DO {dowhile1();} CompoundStmt WHILE '(' Expr ')' ';' {dowhile2();}
 	;
 
 /* For Block */
-ForStmt: FOR '(' Expr ';' Expr ';' Expr ')' Stmt 
-       | FOR '(' Expr ';' Expr ';' Expr ')' CompoundStmt 
-       | FOR '(' Expr ')' Stmt 
-       | FOR '(' Expr ')' CompoundStmt 
+ForStmt: FOR '(' Assignment { for1(); } ';' Expr  { for2(); } ';' Assignment { for3();} ')' ForCon
+	;
+
+ForCon: Stmt { for4(); }
+	| CompoundStmt { for4(); }
 	;
 
 /* IfStmt Block */
-IfStmt : IF '(' Expr ')' Stmt
-		| IF '(' Expr ')' CompoundStmt
-        | IF '(' Expr ')' CompoundStmt ELSE CompoundStmt
+IfStmt : IF '(' Expr ')' { if1(); } Stmt { if3(); }
+		| IF '(' Expr ')' { if1(); } Else
+        
+Else: CompoundStmt {if2();} ELSE  CompoundStmt {if3();}
+	| CompoundStmt {if3();}
 	;
 
 /* Struct Statement */
@@ -168,28 +243,13 @@ StructStmt : STRUCT ID '{' Type Assignment ';' '}' { insert($2,STRUCT,g_addr); g
 	;
 
 /* Print Function */
-PrintFunc : PRINTF '(' Expr ')' ';'
+PrintFunc : PRINTF '(' STRING ')' ';'
 	;
-
-
-/*Expression Block*/
-Expr:	
-	| Expr LE Expr 
-	| Expr GE Expr
-	| Expr NE Expr
-	| Expr EQ Expr
-	| Expr GT Expr
-	| Expr LT Expr
-	| Assignment
-	| ArrayUsage
-	;
-
 
 %%
 
 #include "lex.yy.c"
 #include "ctype.h"
-int count=0;
 
 int main(int argc,char *argv[])
 {
@@ -218,4 +278,5 @@ int main(int argc,char *argv[])
 void yyerror(char *s)
 {
 	printf("%d 	:	%s  %s \n",yylineno,s,yytext);
+	return;
 }

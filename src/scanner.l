@@ -25,20 +25,20 @@ printf  return PRINTF;
 scanf return SCANF;
 struct 	return STRUCT;
 ^"#include ".+ return PREPROC;
-{digit}+       {yylval.realValue=atoi(yytext); return NUM;}
-({digit}*\.{digit}+)|({digit}+\.{digit}*) {yylval.realValue=atoi(yytext); return REAL;}
+{digit}+       { yylval.str = strdup(yytext); return NUM;}
+({digit}*\.{digit}+)|({digit}+\.{digit}*) {yylval.str = strdup(yytext); return REAL;}
 {alpha}({alpha}|{digit})* { yylval.str = strdup(yytext); return ID ;}
-"<="    return LE;
-">="    return GE;
-"=="    return EQ;
-"!="    return NE;
-">"	return GT;
-"<"	return LT;
+"<="    {yylval.str=strdup(yytext); return LE; }
+">="    {yylval.str=strdup(yytext); return GE; }
+"=="    {yylval.str=strdup(yytext); return EQ; }
+"!="    {yylval.str=strdup(yytext); return NE; }
+">"		{yylval.str=strdup(yytext); return GT; }
+"<"		{yylval.str=strdup(yytext); return LT; }
 "."     return DOT;
-"*=" return MUL_ASSIGN;
-"+=" return ADD_ASSIGN;
-"-=" return SUB_ASSIGN;
-"/=" return DIV_ASSIGN;
+"*=" {yylval.str=strdup(yytext); return MUL_ASSIGN;}
+"+=" {yylval.str=strdup(yytext); return ADD_ASSIGN;}
+"-=" {yylval.str=strdup(yytext); return SUB_ASSIGN;}
+"/=" {yylval.str=strdup(yytext); return DIV_ASSIGN;}
 "&&" return AND;
 "||" return OR;
 \/\/.* ;

@@ -44,7 +44,7 @@ void insert(char *n, int type, int addr)
 	return;
 }
 
-void delete(char *n)
+void delete1(char *n)
 {
 	string name(n);
 	map<string,symbolTable>::iterator it;
@@ -72,19 +72,4 @@ void printsym()
 		cout<<endl;
 	}
 	return;
-}
-
-bool check(char *a, char *b)
-{
-	string name1(a);
-	string name2(b);
-
-	struct symbolTable s1,s2;
-	s1 = st[name1];
-	s2 = st[name2];
-
-	if(s1.type[0] == s2.type[0])
-		return false;
-
-	return true;
 }
