@@ -1,6 +1,21 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+bool flag_function = false;
+int scope = 0;
+int ef[100] = {0};
+stack<int> cscope;
+char function_names[10][10] = { "getchar", "putchar", "putc", "puts", "getc", "gets", "getch", "remove" }; 
+
+bool function_check(char *a)
+{
+	int i;
+	for( i = 0; i < 10; i++)
+		if(!strcmp(a, function_names[i]))
+			return true;
+	return false;
+}
+
 int isnum(string a)
 {
 	for(int i = 0; i < a.size(); i++)
@@ -13,16 +28,27 @@ int isnum(string a)
 				return 2; // ID
 		}
 	}
-
 	return 0; // NUM
 }
 
 int type_of(string a)
 {
-	if(st.count(a))
+	int current_scope = cscope.top();
+	rangeit eqit = st.equal_range(a);
+	stit it, res;
+	bool flag = false;
+	if(eqit.first == eqit.second)
 	{
-		return st[a].type[0];
+		return -1;
 	}
+
+	for( it = eqit.first ; it != eqit.second ; it++ )
+	{
+		if(it->second.scope <= current_scope && (!ef[it->second.scope] || flag_function))
+			res = it, flag = true;
+	}
+	if(flag)
+		return res->second.type;
 	else
 		return -1;
 }
@@ -76,4 +102,45 @@ bool check(char *a, char *b)
 			return false;
 		return true;
 	}
+}
+
+int check1(char *a)
+{
+	int current_scope = cscope.top();
+	string name(a);
+
+	rangeit eqit = st.equal_range(name);
+	stit it;
+
+	for( it = eqit.first ; it != eqit.second ; it++ )
+	{
+		if(it->second.scope == current_scope)
+			return 0;
+	}
+
+	return 1;
+}
+
+int check2(char* a)
+{
+	int current_scope = cscope.top();
+	rangeit eqit = st.equal_range(a);
+	stit it, res;
+	bool flag = false;
+
+	if(eqit.first == eqit.second)
+	{
+		return -1;
+	}
+
+	for( it = eqit.first ; it != eqit.second ; it++ )
+	{
+		if(it->second.scope <= current_scope && !ef[it->second.scope])
+			res = it, flag = true;
+	}
+
+	if(flag)
+		return res->second.scope;
+	else
+		return 0;
 }
