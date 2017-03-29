@@ -7,6 +7,17 @@ int ef[100] = {0};
 stack<int> cscope;
 char function_names[10][10] = { "getchar", "putchar", "putc", "puts", "getc", "gets", "getch", "remove" }; 
 
+bool main_check()
+{
+	stit it;
+	for(it = st.begin(); it!= st.end(); it++)
+	{
+		if(it->second.name == "main")
+			return true;
+	}
+	return false;
+}
+
 bool function_check(char *a)
 {
 	int i;

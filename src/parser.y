@@ -49,15 +49,22 @@
 
 
 %%
-start:	Function start
+
+start: Function start
 	| Declaration start
 	| PREPROC start
 	| 
+	{ 
+		if(!main_check())
+		{
+			printf("Error: main function missing\n");
+		}
+	}
 	;
 
 /* Declaration block */
 Declaration: Type Assignment ';'
-	{ 
+	{
 		if( check1($2) )
 		{
 			insert($2,$1,g_addr,cscope.top(),values.top(),0); 

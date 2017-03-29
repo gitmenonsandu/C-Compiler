@@ -1,7 +1,12 @@
 #include <stdio.h>
 
-int main()
+int abs()
 {
 	int a;
-	return a ;
+	return 0;
+}
+
+int main()
+{
+	return 0;
 }
